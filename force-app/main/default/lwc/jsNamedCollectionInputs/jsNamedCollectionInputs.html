@@ -1,0 +1,91 @@
+<template>
+  <p class="slds-m-vertical_small">
+    Give each collection or value a name, then choose its data. You can add different record
+    collections in the same action.
+  </p>
+  <template for:each={inputRows} for:item="row">
+    <section
+      key={row.id}
+      data-row-id={row.id}
+      class="slds-box slds-m-bottom_small"
+      aria-label={row.title}
+    >
+      <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+        <strong>{row.title}</strong>
+        <lightning-button-icon
+          icon-name="utility:close"
+          alternative-text={row.removeLabel}
+          title={row.removeLabel}
+          data-id={row.id}
+          onclick={handleRemove}
+        ></lightning-button-icon>
+      </div>
+      <lightning-input
+        label="Name"
+        value={row.name}
+        data-id={row.id}
+        data-field="name"
+        onchange={handleField}
+        placeholder="Customers"
+        required
+      ></lightning-input>
+      <lightning-combobox
+        label="Data source"
+        value={row.source}
+        options={sourceOptions}
+        data-id={row.id}
+        data-field="source"
+        onchange={handleField}
+      ></lightning-combobox>
+      <template lwc:if={row.isResource}>
+        <lightning-combobox
+          label="Flow resource"
+          value={row.resource}
+          options={resourceOptions}
+          data-id={row.id}
+          data-field="resource"
+          onchange={handleField}
+          required
+        ></lightning-combobox>
+        <p class="slds-text-color_weak slds-m-top_x-small">{row.description}</p>
+      </template>
+      <template lwc:else>
+        <lightning-combobox
+          label="Value type"
+          value={row.kind}
+          options={valueTypes}
+          data-id={row.id}
+          data-field="kind"
+          onchange={handleField}
+        ></lightning-combobox>
+        <template lwc:if={row.isCheckbox}
+          ><lightning-input
+            type="checkbox"
+            label="Value"
+            checked={row.literal}
+            data-id={row.id}
+            data-field="literal"
+            onchange={handleField}
+          ></lightning-input
+        ></template>
+        <template lwc:else
+          ><lightning-input
+            type={row.inputType}
+            label="Value"
+            value={row.literal}
+            step="any"
+            data-id={row.id}
+            data-field="literal"
+            onchange={handleField}
+          ></lightning-input
+        ></template>
+      </template>
+      <template lwc:if={row.legacy}
+        ><p class="slds-text-color_error slds-m-top_small" role="alert">
+          {row.legacyMessage}
+        </p></template
+      >
+    </section>
+  </template>
+  <lightning-button label="Add data" icon-name="utility:add" onclick={handleAdd}></lightning-button>
+</template>

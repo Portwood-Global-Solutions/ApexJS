@@ -1,0 +1,8 @@
+{
+  "plugins": ["prettier-plugin-apex", "@prettier/plugin-xml"],
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "xmlWhitespaceSensitivity": "ignore",
+  "overrides": [{ "files": "**/lwc/**/*.html", "options": { "parser": "lwc" } }]
+}

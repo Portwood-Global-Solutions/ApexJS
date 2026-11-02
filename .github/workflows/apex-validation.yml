@@ -1,0 +1,38 @@
+name: Apex validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apexjs-scratch-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.156.8
+      - name: Authenticate dedicated CI Dev Hub
+        env:
+          SF_DEV_HUB_AUTH_URL: ${{ secrets.SF_DEV_HUB_AUTH_URL }}
+        run: |
+          if [ -z "$SF_DEV_HUB_AUTH_URL" ]; then
+            echo 'Configure SF_DEV_HUB_AUTH_URL with a dedicated CI identity before running Apex validation.'
+            exit 1
+          fi
+          printf '%s' "$SF_DEV_HUB_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias ci-dev-hub
+      - name: Create scratch org
+        id: scratch
+        run: sf org create scratch --definition-file config/project-scratch-def.json --target-dev-hub ci-dev-hub --alias apexjs-ci --duration-days 1 --no-namespace --wait 30
+      - run: sf project deploy start --source-dir force-app --target-org apexjs-ci --wait 30
+      - run: npm run test:apex -- --org apexjs-ci
+      - run: npm run test:flows -- --org apexjs-ci
+      - name: Delete scratch org
+        if: always() && steps.scratch.outcome == 'success'
+        run: sf org delete scratch --target-org apexjs-ci --no-prompt

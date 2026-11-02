@@ -1,0 +1,6 @@
+**/__tests__/**
+**/jest-mocks/**
+**/jsconfig.json
+**/.eslintrc.json
+node_modules/
+reports/

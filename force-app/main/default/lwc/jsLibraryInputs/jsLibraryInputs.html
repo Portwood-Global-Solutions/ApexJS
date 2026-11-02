@@ -1,0 +1,44 @@
+<template>
+  <p class="slds-m-bottom_small">
+    Optional libraries must be uncompressed JavaScript Static Resources with CommonJS exports.
+    Library compatibility and transaction limits still apply.
+  </p>
+  <template lwc:if={loadError}
+    ><p class="slds-text-color_error" role="alert">
+      Library choices could not be loaded. Check that you have the ApexJS Author permission set.
+    </p></template
+  >
+  <template for:each={rows} for:item="row">
+    <section key={row.id} class="slds-box slds-m-bottom_small">
+      <lightning-input
+        label="Name"
+        placeholder="Tools"
+        value={row.name}
+        data-id={row.id}
+        data-field="name"
+        onchange={handleField}
+        required
+      ></lightning-input>
+      <lightning-combobox
+        label="Static Resource"
+        value={row.resource}
+        options={options}
+        data-id={row.id}
+        data-field="resource"
+        onchange={handleField}
+        required
+      ></lightning-combobox>
+      <lightning-button
+        label="Remove library"
+        data-id={row.id}
+        onclick={handleRemove}
+        variant="base"
+      ></lightning-button>
+    </section>
+  </template>
+  <lightning-button
+    label="Add library"
+    icon-name="utility:add"
+    onclick={handleAdd}
+  ></lightning-button>
+</template>

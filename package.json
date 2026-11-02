@@ -1,0 +1,26 @@
+{
+  "name": "@portwood-global-solutions/apexjs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bounded JavaScript execution and typed data for Salesforce Flow",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "check": "node scripts/check-project.mjs",
+    "test": "npm run check && npm run test:unit",
+    "test:unit": "sfdx-lwc-jest -- --runInBand",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage -- --runInBand",
+    "test:apex": "node scripts/test-apex.mjs",
+    "test:flows": "node scripts/test-flows.mjs",
+    "format": "prettier --write force-app docs examples scripts README.md CONTRIBUTING.md SECURITY.md CHANGELOG.md '*.json' '.github/**/*.yml'",
+    "format:check": "prettier --check force-app docs examples scripts README.md CONTRIBUTING.md SECURITY.md CHANGELOG.md '*.json' '.github/**/*.yml'"
+  },
+  "devDependencies": {
+    "@salesforce/sfdx-lwc-jest": "7.9.0",
+    "@prettier/plugin-xml": "3.4.1",
+    "prettier": "3.6.2",
+    "prettier-plugin-apex": "2.3.0"
+  }
+}

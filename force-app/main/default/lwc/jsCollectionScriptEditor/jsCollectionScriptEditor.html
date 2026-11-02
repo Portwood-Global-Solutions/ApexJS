@@ -1,0 +1,80 @@
+<template>
+  <div class="slds-p-around_small">
+    <template lwc:if={portwoodMode}>
+      <p class="slds-m-bottom_small">
+        Prepare your named data for Portwood. Calculations are optional. Connect this action's
+        Portwood JSON Data output to Generate Document.
+      </p>
+      <lightning-combobox
+        label="Data source"
+        value={inputMode}
+        options={inputModes}
+        onchange={handleInputMode}
+      ></lightning-combobox>
+    </template>
+    <template lwc:if={usesExistingJson}>
+      <lightning-combobox
+        label="Earlier JSON result"
+        value={existingJson}
+        options={sourceOptions}
+        onchange={handleExistingJson}
+        required
+      ></lightning-combobox>
+      <lightning-input
+        label="Name for a returned collection"
+        value={collectionName}
+        onchange={handleCollectionName}
+      ></lightning-input>
+    </template>
+    <template lwc:else>
+      <c-js-named-collection-inputs
+        value={namedInputs}
+        builder-context={builderContext}
+        element-info={elementInfo}
+        oninputschange={handleDirectInputs}
+      ></c-js-named-collection-inputs>
+      <lightning-accordion allow-multiple-sections-open active-section-name={calculationSections}>
+        <lightning-accordion-section name="calculation" label="Calculation (JavaScript)">
+          <p class="slds-m-bottom_small">{sourceHelp}</p>
+          <lightning-input
+            type="checkbox"
+            label="Use a Flow text resource for the calculation"
+            checked={sourceIsReference}
+            onchange={handleSourceMode}
+          ></lightning-input>
+          <template lwc:if={sourceIsReference}
+            ><lightning-combobox
+              label="Calculation text resource"
+              value={source}
+              options={sourceOptions}
+              onchange={handleSource}
+            ></lightning-combobox
+          ></template>
+          <template lwc:else
+            ><lightning-textarea
+              class="script"
+              label="JavaScript function body"
+              value={source}
+              onchange={handleSource}
+            ></lightning-textarea
+            ><lightning-button
+              label="Insert example"
+              onclick={handleExample}
+              variant="base"
+            ></lightning-button
+          ></template>
+        </lightning-accordion-section>
+        <lightning-accordion-section name="libraries" label="Static Resource libraries (optional)">
+          <c-js-library-inputs
+            value={libraries}
+            onlibrarieschange={handleLibraries}
+          ></c-js-library-inputs>
+        </lightning-accordion-section>
+      </lightning-accordion>
+      <p class="slds-text-color_weak slds-m-top_small">
+        ApexJS runs its supported JavaScript subset within this Flow transaction. Check success
+        before using results. This action does not save records.
+      </p>
+    </template>
+  </div>
+</template>

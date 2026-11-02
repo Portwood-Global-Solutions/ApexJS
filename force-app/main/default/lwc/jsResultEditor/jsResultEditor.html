@@ -1,0 +1,61 @@
+<template>
+  <div class="slds-p-around_small">
+    <template lwc:if={hasSourceOptions}>
+      <lightning-combobox
+        label="JavaScript result"
+        value={jsonResource}
+        options={sourceOptions}
+        onchange={handleResource}
+        required
+      ></lightning-combobox>
+      <lightning-input
+        type="checkbox"
+        label="Enter a resource reference manually"
+        checked={useManualReference}
+        onchange={handleManualReference}
+      ></lightning-input>
+    </template>
+    <template lwc:if={useManualReference}>
+      <lightning-input
+        label="Result JSON resource API reference"
+        value={jsonResource}
+        onchange={handleResource}
+        placeholder="Calculate.resultJson"
+        required
+      ></lightning-input>
+    </template>
+    <lightning-input
+      label="Result path"
+      value={path}
+      onchange={handlePath}
+      placeholder="summary.total"
+    ></lightning-input>
+    <p class="slds-text-color_weak slds-m-top_x-small">
+      Use summary.total or rows[0].amount. Leave blank for the complete result. JSON Pointer paths
+      such as /summary/total also work.
+    </p>
+    <lightning-combobox
+      label="Return to Flow as"
+      value={outputType}
+      options={typeOptions}
+      onchange={handleOutputType}
+      required
+    ></lightning-combobox>
+    <template lwc:if={isRecords}>
+      <lightning-input
+        label="Output object API name"
+        value={objectApiName}
+        onchange={handleObject}
+        placeholder="Opportunity"
+        required
+      ></lightning-input>
+    </template>
+    <p class="slds-m-top_small">
+      Use the action's <strong>{outputName}</strong> output in the next Flow element.
+    </p>
+    <p class="slds-text-color_weak slds-m-top_small">
+      Check success before using a value. Missing paths and type mismatches return an error; JSON
+      null returns isNull.
+    </p>
+  </div>
+</template>
