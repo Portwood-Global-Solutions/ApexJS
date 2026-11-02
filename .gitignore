@@ -3,6 +3,7 @@ node_modules/
 .sfdx/
 .localdevserver/
 coverage/
+dist/
 reports/*
 !reports/.gitkeep
 *.log

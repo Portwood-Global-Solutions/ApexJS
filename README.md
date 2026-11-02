@@ -14,6 +14,7 @@ Data setup uses **Name**, **Flow resource**, and **Add data**. Types are detecte
 
 ## Start here
 
+- [Install ApexJS](docs/installation.md): unmanaged Salesforce installer and permission-set setup.
 - [Admin guide](docs/admin-guide.md): installation, permissions, first Flow, downstream outputs, and troubleshooting.
 - [Library guide](docs/libraries.md): upload and use your own compatible CommonJS libraries.
 - [Examples](docs/examples.md): calculations, grouping, joining, deduplication, dates, and Portwood.
@@ -33,7 +34,11 @@ return { Summary: { Total: total, Count: input.Orders.length } };
 
 Read `Summary.Total` as **Number** with Read JavaScript Result and use its `numberValue` output in a Decision or Assignment.
 
-## Install from source
+## Install
+
+Use the [unmanaged package installation guide](docs/installation.md) for Salesforce installation links and post-install steps. No local development tools are needed for a package install. The package includes the interpreter, the three Flow actions, their editors, permission sets, and the example library.
+
+### Install from source
 
 Use an org that supports Apex, Flow, and Metadata API 68.0. Salesforce CLI is required for source deployment; Node.js 22 is required only for development tools and tests. The runtime has no npm dependency.
 
@@ -45,7 +50,7 @@ sf project deploy start --source-dir force-app --target-org YOUR_ORG --test-leve
 sf org assign permset --name ApexJS_Author --target-org YOUR_ORG
 ```
 
-Deploy to a sandbox first. See the [admin guide](docs/admin-guide.md#installation-and-permissions) for runtime-user permissions and the [developer guide](docs/development.md) for validation commands. This is a source distribution, not a managed-package installation link. Portwood is optional and is not bundled.
+Deploy to a sandbox first. See the [admin guide](docs/admin-guide.md#installation-and-permissions) for runtime-user permissions and the [developer guide](docs/development.md) for validation commands. Source deployment remains available alongside the unmanaged installer. Portwood is optional and is not bundled.
 
 ## Release scope
 
@@ -55,4 +60,4 @@ The combined JSON input and JSON output policies are each **524,288 characters**
 
 PDF/SVG rendering, pinned library accelerators, large-library Queueable experiments, benchmark assets, and downloaded vendor libraries are outside this release. The original research workspace is not part of this repository.
 
-No open-source license is granted by this private repository; see [LICENSE](LICENSE).
+Licensed under the [MIT License](LICENSE). Development dependencies retain their own licenses. Downloaded vendor libraries are not bundled in the Salesforce package.

@@ -1,6 +1,11 @@
 name: Apex validation
 on:
   workflow_dispatch:
+    inputs:
+      package_version_id:
+        description: 'Optional 04t unmanaged package version to install instead of deploying source'
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -30,7 +35,20 @@ jobs:
       - name: Create scratch org
         id: scratch
         run: sf org create scratch --definition-file config/project-scratch-def.json --target-dev-hub ci-dev-hub --alias apexjs-ci --duration-days 1 --no-namespace --wait 30
-      - run: sf project deploy start --source-dir force-app --target-org apexjs-ci --wait 30
+      - name: Deploy source
+        if: inputs.package_version_id == ''
+        run: sf project deploy start --source-dir force-app --target-org apexjs-ci --wait 30
+      - name: Install uploaded package
+        if: inputs.package_version_id != ''
+        env:
+          PACKAGE_VERSION_ID: ${{ inputs.package_version_id }}
+        run: |
+          if [[ ! "$PACKAGE_VERSION_ID" =~ ^04t[A-Za-z0-9]{12}([A-Za-z0-9]{3})?$ ]]; then
+            echo 'Provide a valid 15- or 18-character 04t package version ID.'
+            exit 1
+          fi
+          sf package install --package "$PACKAGE_VERSION_ID" --target-org apexjs-ci --security-type AdminsOnly --no-prompt --publish-wait 10 --wait 10
+      - run: sf org assign permset --name ApexJS_Author --target-org apexjs-ci
       - run: npm run test:apex -- --org apexjs-ci
       - run: npm run test:flows -- --org apexjs-ci
       - name: Delete scratch org

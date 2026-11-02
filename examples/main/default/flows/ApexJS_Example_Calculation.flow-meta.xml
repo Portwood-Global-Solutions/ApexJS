@@ -565,9 +565,8 @@
   <textTemplates>
     <name>CalculationBody</name>
     <isViewedAsPlainText>true</isViewedAsPlainText>
-    <text>
-      return {Summary:{Total:libraries.Tools.sum(input.Amounts),CustomerCount:input.Customers.length},Rows:input.Orders,Dates:input.DueDates,Times:input.Times,Title:input.Title};
-    </text>
+    <text
+    ><![CDATA[return {Summary:{Total:libraries.Tools.sum(input.Amounts),CustomerCount:input.Customers.length},Rows:input.Orders,Dates:input.DueDates,Times:input.Times,Title:input.Title};]]></text>
   </textTemplates>
   <variables>
     <name>accounts</name>

@@ -90,7 +90,7 @@ private class JsResultActionTest {
     Integer writes = Limits.getDmlStatements();
     JsResultAction.Response result = JsResultAction.run(new List<JsResultAction.Request>{ q })[0];
     Assert.isTrue(result.success, 'Execution result: ' + result.error);
-    Assert.areEqual(Account.SObjectType, result.records[0].getSObjectType());
+    Assert.areEqual('Account', result.records[0].getSObjectType().getDescribe().getName());
     Assert.areEqual('Acme', result.records[0].get('Name'));
     Assert.areEqual(writes, Limits.getDmlStatements());
     for (
@@ -99,7 +99,7 @@ private class JsResultActionTest {
         '[{"MissingField":1}]',
         '[{"Name":{"nested":1}}]',
         '[{"attributes":"bad"}]',
-        '[{"attributes":{"type":"Opportunity"}}]',
+        '[{"attributes":{"type":"Contact"}}]',
         '[{"Id":"' +
         UserInfo.getUserId() +
         '"}]'

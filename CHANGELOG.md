@@ -1,5 +1,13 @@
 # Changelog
 
+## Unmanaged installer 1.1 — 2026-11-02
+
+- Salesforce installation links for source release 0.1.0, hosted in Portwood Global - Production with no namespace or Portwood dependency.
+- Metadata API ZIP and checksum build tooling, an explicit-org deployment helper, and a guided installation document for admins.
+- Expanded contract tests: 93 Apex tests, 84.6% aggregate coverage, and at least 75% coverage for every shipped production class.
+- Optional uploaded-package validation through the Apex CI workflow.
+- Dynamic record fixtures keep the publishing org's optional Opportunity Historical Trending feature out of the installation requirements.
+
 ## 0.1.0 — 2026-11-01
 
 - Initial clean source distribution of ApexJS under Portwood Global Solutions.

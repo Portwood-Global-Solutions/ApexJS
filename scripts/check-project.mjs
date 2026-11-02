@@ -36,6 +36,7 @@ for (const file of [
   'CONTRIBUTING.md',
   'CHANGELOG.md',
   'docs/admin-guide.md',
+  'docs/installation.md',
   'docs/libraries.md',
   'docs/javascript-support.md',
   'docs/development.md',

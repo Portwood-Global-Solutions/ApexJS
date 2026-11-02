@@ -44,6 +44,18 @@ const totals = classes.reduce(
   { covered: 0, total: 0 },
 );
 const coverage = Math.round((1000 * totals.covered) / totals.total) / 10;
+const belowClassMinimum = classes.filter(
+  (row) => row.totalLines > 0 && row.totalCovered / row.totalLines < 0.75,
+);
+assert.deepEqual(
+  belowClassMinimum.map((row) => ({
+    name: row.name,
+    covered: row.totalCovered,
+    total: row.totalLines,
+  })),
+  [],
+  'Each shipped production class must reach 75% coverage for targeted production deployment.',
+);
 assert.ok(
   coverage >= 80,
   'Release Apex coverage must be at least 80%; measured ' + coverage + '%.',

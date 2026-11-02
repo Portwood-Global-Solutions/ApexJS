@@ -31,10 +31,8 @@
     <inputParameters>
       <name>source</name>
       <value>
-        <stringValue>
-          return {Summary:{Total:libraries.Tools.sum(input.Orders.map(function(row){return
-          row.Amount;})),CustomerName:input.Customers[0].Name}};
-        </stringValue>
+        <stringValue
+        ><![CDATA[return {Summary:{Total:libraries.Tools.sum(input.Orders.map(function(row){return row.Amount;})),CustomerName:input.Customers[0].Name}};]]></stringValue>
       </value>
     </inputParameters>
     <storeOutputAutomatically>true</storeOutputAutomatically>

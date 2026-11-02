@@ -210,4 +210,74 @@ private class JsNativeContractTest {
       )
     );
   }
+
+  @IsTest
+  static void arrayConstructionAndUnicodeIterationPreserveValues() {
+    Assert.areEqual(
+      new List<Object>{
+        3,
+        new List<Object>{ '1' },
+        new List<Object>{ 'x', 'y' },
+        new List<Object>{ 'A', '😀' },
+        new List<Object>{ 1 }
+      },
+      value(
+        'var a=Array(3);a[1]=7;return [a.length,Object.keys(a),new Array("x","y"),Array.from("A😀"),Array.from(new Map([["A",1]]).values())];'
+      )
+    );
+  }
+
+  @IsTest
+  static void characterApplyHandlesBytesWordsAndPrimitiveConversions() {
+    Assert.areEqual(
+      new List<Object>{ 'ABÿ', 'CD', 3, 0, 1, 0, 3.5, '42' },
+      value(
+        'var a=String.fromCharCode.apply(null,[65,null,true]);return [String.fromCharCode.apply(null,new Uint8Array([65,66,255])),String.fromCharCode.apply(null,new Uint16Array([67,68])),a.length,a.charCodeAt(1),a.charCodeAt(2),String.fromCharCode(NaN).charCodeAt(0),Number(3.5),(42).toString()];'
+      )
+    );
+  }
+
+  @IsTest
+  static void numericPredicatesHonorPrimitiveConversion() {
+    Assert.areEqual(
+      new List<Object>{ -255, true, true, true, false, true, true, true },
+      value(
+        'return [parseInt("-fftail",16),isNaN(parseInt("xyz",10)),Number.isNaN(parseInt("10",1)),isNaN(),isFinite(),isFinite(null),isFinite({valueOf:function(){return "12";}}),isNaN([1,2])];'
+      )
+    );
+  }
+
+  @IsTest
+  static void descriptorReconfigurationHonorsFlagsAndGetterIdentity() {
+    Assert.areEqual(
+      new List<Object>{ 1, true, true, 'undefined', true, true, 3 },
+      value(
+        'var o={};Object.defineProperty(o,"x",{value:1,writable:true,configurable:true});Object.defineProperty(o,"x",{enumerable:true});var d=Object.getOwnPropertyDescriptor(o,"x");var before=o.x;var removed=delete o.x;var getter=function(){return 3;};Object.defineProperty(o,"y",{get:getter,enumerable:true});var g=Object.getOwnPropertyDescriptor(o,"y");return [before,d.enumerable,d.writable,typeof o.x,removed,g.get===getter,o.y];'
+      )
+    );
+    for (
+      String descriptor : new List<String>{
+        '{value:2}',
+        '{configurable:true}',
+        '{enumerable:true}',
+        '{writable:true}',
+        '{get:function(){return 1;}}'
+      }
+    ) {
+      Assert.areEqual(
+        'TypeError',
+        value(
+          'var o={};Object.defineProperty(o,"x",{value:1});try{Object.defineProperty(o,"x",' +
+            descriptor +
+            ');}catch(e){return e.name;}return "unexpected";'
+        )
+      );
+    }
+    Assert.areEqual(
+      new List<Object>{ 1, 'TypeError', false },
+      value(
+        'var o={};Object.defineProperty(o,"x",{value:1});Object.defineProperty(o,"x",{value:1});var error="unexpected";try{delete o.x;}catch(e){error=e.name;}return [o.x,error,Object.getOwnPropertyDescriptor(o,"x").configurable];'
+      )
+    );
+  }
 }

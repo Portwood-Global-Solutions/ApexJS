@@ -25,10 +25,15 @@ private class JsDirectInputsTest {
   static void recordsRepeatedCollectionsAndScalars() {
     List<JsFlowNamedInput> rows = new List<JsFlowNamedInput>();
     JsFlowNamedInput r = row('accounts', 'Records', true);
-    r.records = new List<SObject>{ new Account(Name = 'Acme') };
+    SObject account = Schema.getGlobalDescribe().get('Account').newSObject();
+    account.put('Name', 'Acme');
+    account.put('AnnualRevenue', 123);
+    r.records = new List<SObject>{ account };
     rows.add(r);
-    r = row('orders', 'Records', true);
-    r.records = new List<SObject>{ new Opportunity(Name = 'Deal', Amount = 123) };
+    r = row('contacts', 'Records', true);
+    SObject contact = Schema.getGlobalDescribe().get('Contact').newSObject();
+    contact.put('LastName', 'Lane');
+    r.records = new List<SObject>{ contact };
     rows.add(r);
     r = row('first', 'Number', true);
     r.numbers = new List<Decimal>{ 1, 2 };
@@ -59,7 +64,11 @@ private class JsDirectInputsTest {
     );
     Assert.areEqual(
       123,
-      ((Map<String, Object>) ((List<Object>) value.get('orders'))[0]).get('Amount')
+      ((Map<String, Object>) ((List<Object>) value.get('accounts'))[0]).get('AnnualRevenue')
+    );
+    Assert.areEqual(
+      'Lane',
+      ((Map<String, Object>) ((List<Object>) value.get('contacts'))[0]).get('LastName')
     );
   }
   @IsTest

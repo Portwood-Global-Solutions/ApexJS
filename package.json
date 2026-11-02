@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Bounded JavaScript execution and typed data for Salesforce Flow",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=22 <25"
   },
@@ -14,6 +14,8 @@
     "test:unit:coverage": "sfdx-lwc-jest --coverage -- --runInBand",
     "test:apex": "node scripts/test-apex.mjs",
     "test:flows": "node scripts/test-flows.mjs",
+    "build:package": "node scripts/build-package.mjs",
+    "deploy:package": "node scripts/deploy-package.mjs",
     "format": "prettier --write force-app docs examples scripts README.md CONTRIBUTING.md SECURITY.md CHANGELOG.md '*.json' '.github/**/*.yml'",
     "format:check": "prettier --check force-app docs examples scripts README.md CONTRIBUTING.md SECURITY.md CHANGELOG.md '*.json' '.github/**/*.yml'"
   },

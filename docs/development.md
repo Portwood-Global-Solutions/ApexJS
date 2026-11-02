@@ -2,7 +2,7 @@
 
 ## Setup
 
-Use Node.js 22, Git, and Salesforce CLI. Clone the private repository and run `npm ci`. npm dependencies are development tools; none execute in Salesforce.
+Use Node.js 22, Git, and Salesforce CLI. Clone the repository and run `npm ci`. npm dependencies are development tools; none execute in Salesforce.
 
 ```sh
 npm test
@@ -28,7 +28,7 @@ The Flow verification deploys the included examples and creates synthetic Accoun
 - Apex tests cover compiler/runtime semantics, native inputs, strict outputs, library loading and isolation, failures, bulk order/isolation, and resource policies.
 - Integration Flows verify actual Salesforce input conversion, mixed record types, native dates, source resources, library execution, typed output, and no-code Portwood shapes.
 
-`test:apex` runs all local tests with coverage and enforces 80% aggregate line coverage across the shipped production Apex classes. Editor gates require 90% lines/statements, 70% branches, and 75% functions. Individual coverage results are retained in reports for review; the [verification snapshot](verification.md) records the release measurements. A percentage alone is insufficient: tests must pass and the Flow contract must be validated. Salesforce's production coverage rules also apply to the selected deployment test level. See [Salesforce testing guidance](https://developer.salesforce.com/docs/platform/sfdx-dev/guide/sfdx-dev-testing.html).
+`test:apex` runs all local tests with coverage and enforces 80% aggregate line coverage and 75% coverage for each shipped production Apex class. The per-class gate supports targeted production deployments. Editor gates require 90% lines/statements, 70% branches, and 75% functions. Individual coverage results are retained in reports for review; the [verification snapshot](verification.md) records the release measurements. A percentage alone is insufficient: tests must pass and the Flow contract must be validated. Salesforce's production coverage rules also apply to the selected deployment test level. See [Salesforce testing guidance](https://developer.salesforce.com/docs/platform/sfdx-dev/guide/sfdx-dev-testing.html).
 
 ## Apex API
 
@@ -51,11 +51,31 @@ No first-release API preserves the research entry-bundle or left/right-slot inte
 
 ## CI
 
-The normal workflow runs source checks, LWC tests, and formatting without Salesforce credentials. The separate **Apex validation** workflow can create a scratch org, deploy the release, run Apex coverage and integration Flows, and delete the org afterward.
+The normal workflow runs source checks, LWC tests, and formatting without Salesforce credentials. The separate **Apex validation** workflow can create a scratch org, deploy the release, run Apex coverage and integration Flows, and delete the org afterward. Supply its optional `package_version_id` input with an uploaded `04t` ID to validate the installed package instead; leaving it empty validates the checked-out source.
 
 To enable authenticated validation, configure the repository secret **SF_DEV_HUB_AUTH_URL** using a dedicated authorized CI Dev Hub identity. Keep this out of source and logs. Existing local production authentication is not copied to GitHub automatically. Run the workflow manually once the secret is configured; it fails clearly if the credential is missing.
 
 Use your organization's approved credential lifecycle and scratch-org capacity. Keep Actions permissions minimal and review dependency/action updates.
+
+## Unmanaged package builds
+
+Run `npm run build:package` with Salesforce CLI and the `zip` command installed. It converts only `force-app` to Metadata API format and writes the ZIP and SHA-256 checksum under ignored `dist/`. The manifest uses explicit members and the package name ApexJS. Tests for the property editors, example Flows, org authentication, and generated reports are excluded from the archive; Apex test classes are included.
+
+The first-generation unmanaged package is hosted in **Portwood Global - Production**. Do not use an expiring scratch org as its permanent host. For a new package container, create ApexJS in Setup → Package Manager → New. Keep it unmanaged. Deploy the named metadata archive to that existing container, then retrieve ApexJS and compare its component membership with the build manifest before uploading. The deployment helper requires an explicit org and runs every shipped Apex test class with RunSpecifiedTests; Salesforce enforces 75% coverage for each deployed class.
+
+```sh
+npm run build:package
+npm run deploy:package -- --org YOUR_PACKAGING_ORG
+sf package1 version create --package-id YOUR_033_PACKAGE_ID --name 'ApexJS 0.1.0' --version 1.1 --target-org YOUR_PACKAGING_ORG --wait 2
+```
+
+First-generation package version numbers must start at 1.0, so the installer version and the source's semantic version are tracked separately. The distributed installer is version 1.1 and contains source release 0.1.0. Its exact ID and links are recorded in the [installation guide](installation.md).
+
+For a first upload, if Tooling API does not yet list a `033` package ID, open the package's **Upload** page in Package Manager and use the `033` ID from that page. If Salesforce reports **Bad References Found**, use its **Recompile All** action to refresh the packaging dependency references before continuing.
+
+Before publishing installation links, install the uploaded `04t` version into an empty scratch org, assign ApexJS Author, and run the Apex and Flow checks against that installed copy. Do not deploy `force-app` into the installation-check org before testing; that would hide missing package components.
+
+Packaged record test fixtures use dynamic SObject construction. A compile-time reference to Opportunity caused Salesforce to attach the publishing org's Historical Trending feature as an installation requirement. Keep optional source-org features out of the package dependencies; the separate integration Flows still exercise actual Account and Opportunity collections together.
 
 ## Release checks
 
@@ -63,5 +83,5 @@ Use your organization's approved credential lifecycle and scratch-org capacity. 
 2. Review the public action surface, permission sets, supported-language table, and source/library policies.
 3. Confirm that documentation examples still use the exact data names and output paths.
 4. Scan tracked files for org state, credentials, customer data, third-party downloads, and generated artifacts.
-5. Update the changelog and verification snapshot. Decide licensing and visibility explicitly before any public publication; this repository defaults to private and unlicensed.
+5. Update the changelog, verification snapshot, and installation links. Check version numbers and license metadata against LICENSE.
 6. Deploy to a sandbox with representative workloads before adopting it in a production org.

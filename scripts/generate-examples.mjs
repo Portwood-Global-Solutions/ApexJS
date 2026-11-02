@@ -3,6 +3,8 @@ const directory = 'examples/main/default/flows';
 mkdirSync(directory, { recursive: true });
 const esc = (value) =>
   String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+// XML text wrapping must not introduce a JavaScript line break after return.
+const cdata = (value) => `<![CDATA[${String(value).replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
 const param = (name, value) =>
   `<inputParameters><name>${name}</name><value>${value}</value></inputParameters>`;
 const ref = (value) => `<elementReference>${value}</elementReference>`;
@@ -83,7 +85,7 @@ const libraries = param(
 );
 const source =
   'return {Summary:{Total:libraries.Tools.sum(input.Amounts),CustomerCount:input.Customers.length},Rows:input.Orders,Dates:input.DueDates,Times:input.Times,Title:input.Title};';
-const template = `<textTemplates><name>CalculationBody</name><isViewedAsPlainText>true</isViewedAsPlainText><text>${esc(source)}</text></textTemplates>`;
+const template = `<textTemplates><name>CalculationBody</name><isViewedAsPlainText>true</isViewedAsPlainText><text>${cdata(source)}</text></textTemplates>`;
 const readers = [
   ['Read_total', 'Summary.Total', 'Number', 'total', 'numberValue'],
   ['Read_dates', 'Dates', 'DateCollection', 'datesOut', 'dateValues'],
@@ -167,7 +169,7 @@ writeFileSync(
       'JsCollectionScriptAction',
       param('namedInputs', '<apexValue>' + JSON.stringify(recordRows) + '</apexValue>') +
         libraries +
-        param('source', '<stringValue>' + esc(recordSource) + '</stringValue>'),
+        param('source', '<stringValue>' + cdata(recordSource) + '</stringValue>'),
       'Check_Calculate',
     ),
     assignment('Fault', [['error', '$Flow.FaultMessage']]) +

@@ -18,6 +18,6 @@ Dynamic eval/Function compilation and arbitrary Apex dispatch remain unavailable
 
 ## Reporting an issue
 
-For this private repository, contact the Portwood Global Solutions maintainers through your existing private support channel. Do not open a public issue containing org credentials, real customer records, sensitive calculations, or exploit payloads with secrets. Provide the release version, a minimized synthetic example, expected/actual behavior, and relevant error category.
+Contact the Portwood Global Solutions maintainers through your existing private support channel. Do not open a public issue containing org credentials, real customer records, sensitive calculations, or exploit payloads with secrets. Provide the release version, a minimized synthetic example, expected/actual behavior, and relevant error category.
 
 See [JavaScript support](docs/javascript-support.md) for compatibility boundaries. Coverage and a successful deployment do not establish security certification or guarantee every workload.

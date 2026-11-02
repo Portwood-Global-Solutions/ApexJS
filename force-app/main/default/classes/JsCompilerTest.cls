@@ -62,4 +62,13 @@ private class JsCompilerTest {
     );
     Assert.areEqual('[3,[],0,[1,2],true]', result.resultJson);
   }
+
+  @IsTest
+  static void emitsEnumerationSwitchAndLabeledBlockUnwind() {
+    JsAstTestSupport.Response result = run(
+      'const values={a:1,b:2};let total=0;for(const key in values){total+=values[key];}let labelValue=0;outer:{for(let i=0;i<3;i++){if(i===1){labelValue=i;break outer;}}}switch(total){case 3:total+=4;break;default:total=-1;}return [total,labelValue];'
+    );
+    Assert.isTrue(result.success, 'Compiled execution: ' + result.error);
+    Assert.areEqual('[7,1]', result.resultJson);
+  }
 }

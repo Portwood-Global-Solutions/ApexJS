@@ -10,7 +10,7 @@ You configure the data using form fields. Only the calculation itself is JavaScr
 
 ## Installation and permissions
 
-1. Ask a Salesforce developer or deployment administrator to clone this repository and deploy `force-app` using the README commands. Validate in a sandbox first. This release uses Metadata API 68.0, including structured action inputs and inline collection mappings.
+1. Follow the [unmanaged package installation guide](installation.md), choose **Install for Admins Only**, and validate in a sandbox first. Source deployment using the README commands is also available. This release uses Metadata API 68.0, including structured action inputs and inline collection mappings.
 2. Assign **ApexJS Author** to Flow designers. It grants the Apex class access used by the actions and the design-time library picker. It does **not** grant Manage Flow or permission to upload Static Resources; those Salesforce permissions must already be assigned separately.
 3. Assign **ApexJS User** to users who need the runtime classes through their Flow execution context. Authors already have the runtime class access through ApexJS Author. Normal Flow execution permissions still apply.
 4. In Flow Builder, add an Action and search for **ApexJS** or the action name. If an action is missing, confirm the deployment and class access, then reload Flow Builder.

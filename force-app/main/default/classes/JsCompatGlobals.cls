@@ -1,4 +1,4 @@
-/** Bounded compatibility globals used by the experimental async library path. Dynamic code remains disabled. */
+/** Bounded numeric conversion globals and ArrayBuffer support. Dynamic code remains disabled. */
 public class JsCompatGlobals {
   private static final String DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
   public static void install(JsScope scope, JsRuntime runtime) {
