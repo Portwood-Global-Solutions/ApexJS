@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Date and Date/Time inputs compare their boundary markers by the year as written, so they work for users whose locale uses the Buddhist calendar (Thai, th_TH). For such a user, Apex read the year of the markers as a Buddhist year.
+- JavaScript `Date` gives the same results for every user locale. For a th_TH user, `getFullYear()` returned the Buddhist year (2569 for 2026), and `Date.UTC`, the `set` methods and the `M/D/YYYY HH:mm UTC` format computed dates 543 years early.
+- JavaScript `Date` uses the proleptic Gregorian calendar for every date, as JavaScript does: dates before 15 October 1582 no longer differ from JavaScript by several days, `getUTCMilliseconds()` before 1970 is no longer negative, years after 9999 render in the expanded ISO form (`+010000-01-01T00:00:00.000Z`), and ISO strings without seconds (`2026-11-01T09:30Z`) parse.
+
 ## Unmanaged installer 1.1 — 2026-11-02
 
 - Salesforce installation links for source release 0.1.0, hosted in Portwood Global - Production with no namespace or Portwood dependency.

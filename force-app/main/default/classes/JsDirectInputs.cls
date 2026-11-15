@@ -1,8 +1,12 @@
 /** Copy named inputs once at the JS boundary. Flow binds resources; Apex never looks up a resource name. */
 public class JsDirectInputs {
+  // The flow editor writes the boundaries as the literals 1900-01-01 and
+  // 1900-01-01T00:00:00.000Z. Date.valueOf and Datetime.valueOfGmt read the
+  // year as written for every locale; Date.newInstance and
+  // Datetime.newInstanceGmt read it as a Buddhist-era year for a th_TH user.
   private static final Map<String, Object> BOUNDARIES = new Map<String, Object>{
-    'Date' => Date.newInstance(1900, 1, 1),
-    'DateTime' => Datetime.newInstanceGmt(1900, 1, 1, 0, 0, 0),
+    'Date' => Date.valueOf('1900-01-01'),
+    'DateTime' => Datetime.valueOfGmt('1900-01-01 00:00:00'),
     'Text' => '__js_flow_boundary__',
     'Number' => Decimal.valueOf('0'),
     'Boolean' => false

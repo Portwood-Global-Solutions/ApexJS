@@ -83,19 +83,19 @@ private class JsDirectInputsTest {
     );
     q.inputSizes = new JsFlowInputSizes();
     q.inputSizes.sizes = new List<Integer>{ 3, 0, 1 };
-    Date marker = Date.newInstance(1900, 1, 1);
+    Date marker = Date.valueOf('1900-01-01');
     q.nativeDates = new List<Date>{
-      Date.newInstance(2026, 11, 1),
+      Date.valueOf('2026-11-01'),
       null,
       marker,
       marker,
       null,
       marker,
-      Date.newInstance(2027, 1, 1),
+      Date.valueOf('2027-01-01'),
       marker
     };
-    Datetime instant = Datetime.newInstanceGmt(2026, 11, 1, 9, 30, 0);
-    q.nativeDateTimes = new List<Datetime>{ instant, Datetime.newInstanceGmt(1900, 1, 1, 0, 0, 0) };
+    Datetime instant = Datetime.valueOfGmt('2026-11-01 09:30:00');
+    q.nativeDateTimes = new List<Datetime>{ instant, Datetime.valueOfGmt('1900-01-01 00:00:00') };
     Map<String, Object> value = result(q);
     Assert.areEqual(new List<Object>{ '2026-11-01', null, '1900-01-01' }, value.get('first'));
     Assert.areEqual(new List<Object>(), value.get('empty'));
@@ -111,7 +111,7 @@ private class JsDirectInputsTest {
       );
       q.inputSizes = new JsFlowInputSizes();
       q.inputSizes.sizes = new List<Integer>{ 1 };
-      q.nativeDates = new List<Date>{ Date.newInstance(2026, 11, 1), Date.newInstance(1900, 1, 1) };
+      q.nativeDates = new List<Date>{ Date.valueOf('2026-11-01'), Date.valueOf('1900-01-01') };
       if (scenario == 0)
         q.inputSizes = null;
       if (scenario == 1)
