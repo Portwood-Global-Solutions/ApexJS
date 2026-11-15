@@ -16,9 +16,9 @@ private class JsResultActionTest {
     Assert.areEqual('A', read(json, 'text', 'Text').textValue);
     Assert.areEqual(0, read(json, 'number', 'Number').numberValue);
     Assert.areEqual(false, read(json, 'flag', 'Boolean').booleanValue);
-    Assert.areEqual(Date.newInstance(2026, 11, 1), read(json, 'day', 'Date').dateValue);
+    Assert.areEqual(Date.valueOf('2026-11-01'), read(json, 'day', 'Date').dateValue);
     Assert.areEqual(
-      Datetime.newInstanceGmt(2026, 11, 1, 9, 30, 0),
+      Datetime.valueOfGmt('2026-11-01 09:30:00'),
       read(json, 'instant', 'DateTime').dateTimeValue
     );
     JsResultAction.Response nil = read(json, 'nil', 'Text');
@@ -46,11 +46,11 @@ private class JsResultActionTest {
       read('[false,null,true]', '', 'BooleanCollection').booleanValues
     );
     Assert.areEqual(
-      new List<Date>{ Date.newInstance(2026, 11, 1), null },
+      new List<Date>{ Date.valueOf('2026-11-01'), null },
       read('["2026-11-01",null]', '', 'DateCollection').dateValues
     );
     Assert.areEqual(
-      new List<Datetime>{ Datetime.newInstanceGmt(2026, 11, 1, 9, 30, 0) },
+      new List<Datetime>{ Datetime.valueOfGmt('2026-11-01 09:30:00') },
       read('["2026-11-01T09:30:00Z"]', '', 'DateTimeCollection').dateTimeValues
     );
     Assert.areEqual(new List<Decimal>(), read('[]', '', 'NumberCollection').numberValues);

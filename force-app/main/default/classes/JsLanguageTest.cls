@@ -53,6 +53,53 @@ private class JsLanguageTest {
     );
   }
   @IsTest
+  static void datesUseTheProlepticGregorianCalendarOutsideTheModernRange() {
+    Assert.areEqual(
+      new List<Object>{
+        '2027-02-01T02:02:02.001Z',
+        1,
+        '1969-12-31T23:59:59.999Z',
+        3,
+        999,
+        true,
+        -14826672000000L,
+        4,
+        '+010000-01-01T00:00:00.000Z',
+        1793491200000L,
+        126
+      },
+      run(
+        'var a=new Date(Date.UTC(2026,13,0,25,61,61,1001)),b=new Date(-1),c=new Date("1500-03-01T00:00:00Z"),e=new Date(Date.UTC(10000,0,1)),f=new Date("2026-11-01");' +
+        'return [a.toISOString(),a.getUTCDay(),b.toISOString(),b.getUTCDay(),b.getUTCMilliseconds(),c.getTime()===Date.UTC(1500,2,1),c.getTime(),c.getUTCDay(),e.toISOString(),f.getTime(),f.getYear()];'
+      )
+    );
+  }
+  @IsTest
+  static void datesIgnoreABuddhistEraLocale() {
+    Profile p = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+    User thai = new User(
+      FirstName = 'Era',
+      LastName = 'Dates',
+      Alias = 'eradates',
+      Email = 'eradates@apexjs.example.com',
+      Username = 'eradates' + Datetime.now().getTime() + '@apexjs.example.com',
+      TimeZoneSidKey = 'Asia/Bangkok',
+      LocaleSidKey = 'th_TH',
+      EmailEncodingKey = 'UTF-8',
+      LanguageLocaleKey = 'en_US',
+      ProfileId = p.Id
+    );
+    insert thai;
+    System.runAs(thai) {
+      Assert.areEqual(
+        new List<Object>{ '2026-11-01T09:30:00.000Z', 2026, 10, 1, 0, '2026-12-31T00:00:00.000Z' },
+        run(
+          'var d=new Date("2026-11-01T09:30:00.000Z"),u=new Date(Date.UTC(2026,11,31));return [d.toISOString(),d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCDay(),u.toISOString()];'
+        )
+      );
+    }
+  }
+  @IsTest
   static void regularExpressionsAndStringOperations() {
     Assert.areEqual(
       new List<Object>{ 'b', 'bc', 'bcd', 3 },

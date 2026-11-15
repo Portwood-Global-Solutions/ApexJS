@@ -112,49 +112,131 @@ public class JsLibraryBuiltins {
         Integer year = Integer.valueOf(legacy.group(3));
         if (year < 100)
           year += year < 50 ? 2000 : 1900;
-        return Datetime.newInstanceGmt(
-            year,
-            Integer.valueOf(legacy.group(1)),
-            Integer.valueOf(legacy.group(2)),
-            Integer.valueOf(legacy.group(4)),
-            Integer.valueOf(legacy.group(5)),
-            0
-          )
-          .getTime();
+        return utcMilliseconds(
+          year,
+          Integer.valueOf(legacy.group(1)) - 1,
+          Integer.valueOf(legacy.group(2)),
+          Integer.valueOf(legacy.group(4)) * 3600000L + Integer.valueOf(legacy.group(5)) * 60000L
+        );
       }
     }
-    String value = text.replace('T', ' ').replace('Z', '');
-    if (value.length() == 10)
-      value += ' 00:00:00';
-    Integer dot = value.indexOf('.'), ms = 0;
-    if (dot >= 0) {
-      String fraction = value.substring(dot + 1);
-      ms = Integer.valueOf((fraction + '000').substring(0, 3));
-      value = value.substring(0, dot);
-    }
-    try {
-      return Datetime.valueOfGmt(value).getTime() + ms;
-    } catch (Exception error) {
+    Matcher iso = Pattern.compile(
+        '^(\\d{4})-(\\d{2})-(\\d{2})(?:[T ](\\d{2}):(\\d{2})(?::(\\d{2})(?:\\.(\\d+))?)?)?Z?$'
+      )
+      .matcher(text);
+    if (!iso.matches())
       throw new JsException('TypeError: Unsupported Date input: ' + text);
-    }
+    Integer month = Integer.valueOf(iso.group(2)), day = Integer.valueOf(iso.group(3));
+    Integer hour = iso.group(4) == null ? 0 : Integer.valueOf(iso.group(4));
+    Integer minute = iso.group(5) == null ? 0 : Integer.valueOf(iso.group(5));
+    Integer second = iso.group(6) == null ? 0 : Integer.valueOf(iso.group(6));
+    Integer ms = iso.group(7) == null ? 0 : Integer.valueOf((iso.group(7) + '00').substring(0, 3));
+    if (
+      month < 1 ||
+      month > 12 ||
+      day < 1 ||
+      day > 31 ||
+      hour > 24 ||
+      minute > 59 ||
+      second > 59 ||
+      (hour == 24 &&
+      (minute > 0 ||
+      second > 0 ||
+      ms > 0))
+    )
+      throw new JsException('TypeError: Unsupported Date input: ' + text);
+    return utcMilliseconds(
+      Integer.valueOf(iso.group(1)),
+      month - 1,
+      day,
+      hour * 3600000L + minute * 60000L + second * 1000L + ms
+    );
   }
   private static Long components(List<JsValue> args) {
-    Integer year = numberAt(args, 0, 1970), month = numberAt(args, 1, 0);
+    Integer year = numberAt(args, 0, 1970);
     if (year >= 0 && year <= 99)
       year += 1900;
-    Integer years = (Integer) Math.floor(Double.valueOf(month) / 12);
-    year += years;
-    month -= years * 12;
-    Date day = Date.newInstance(year, month + 1, 1).addDays(numberAt(args, 2, 1) - 1);
-    return Datetime.newInstanceGmt(day, Time.newInstance(0, 0, 0, 0)).getTime() +
+    return utcMilliseconds(
+      year,
+      numberAt(args, 1, 0),
+      numberAt(args, 2, 1),
       numberAt(args, 3, 0) * 3600000L +
-      numberAt(args, 4, 0) * 60000L +
-      numberAt(args, 5, 0) * 1000L +
-      numberAt(args, 6, 0);
+        numberAt(args, 4, 0) * 60000L +
+        numberAt(args, 5, 0) * 1000L +
+        numberAt(args, 6, 0)
+    );
+  }
+  // Dates are computed in the proleptic Gregorian calendar, as JavaScript does.
+  // Apex date constructors and getters are not used: for a user whose locale
+  // has a Buddhist-era calendar (th_TH), Date.newInstance and
+  // Datetime.newInstanceGmt read the year as a Buddhist year, and yearGmt()
+  // adds 543 to it.
+  private static final Long DAY_MS = 86400000L;
+  private static Long floorDiv(Long dividend, Long divisor) {
+    Long quotient = dividend / divisor;
+    return quotient * divisor != dividend && (dividend < 0) != (divisor < 0)
+      ? quotient - 1
+      : quotient;
+  }
+  // month is zero-based and may be outside 0-11; day may be outside the month.
+  private static Long utcMilliseconds(Long year, Long month, Long day, Long timeOfDay) {
+    Long years = floorDiv(month, 12);
+    year += years;
+    month = month - years * 12 + 1;
+    Long y = month <= 2 ? year - 1 : year;
+    Long era = floorDiv(y, 400);
+    Long yearOfEra = y - era * 400;
+    Long dayOfYear = (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5;
+    Long dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear;
+    return (era * 146097 + dayOfEra - 719468 + day - 1) * DAY_MS + timeOfDay;
+  }
+  // Returns year, zero-based month, day, hour, minute, second, millisecond and
+  // day of the week (0 is Sunday).
+  private static List<Long> utcFields(Long milliseconds) {
+    Long days = floorDiv(milliseconds, DAY_MS);
+    Long timeOfDay = milliseconds - days * DAY_MS;
+    Long shifted = days + 719468;
+    Long era = floorDiv(shifted, 146097);
+    Long dayOfEra = shifted - era * 146097;
+    Long yearOfEra = (dayOfEra - dayOfEra / 1460 + dayOfEra / 36524 - dayOfEra / 146096) / 365;
+    Long dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100);
+    Long monthIndex = (5 * dayOfYear + 2) / 153;
+    Long month = monthIndex < 10 ? monthIndex + 3 : monthIndex - 9;
+    return new List<Long>{
+      yearOfEra + era * 400 + (month <= 2 ? 1 : 0),
+      month - 1,
+      dayOfYear - (153 * monthIndex + 2) / 5 + 1,
+      timeOfDay / 3600000,
+      Math.mod(timeOfDay, 3600000) / 60000,
+      Math.mod(timeOfDay, 60000) / 1000,
+      Math.mod(timeOfDay, 1000),
+      days + 4 - floorDiv(days + 4, 7) * 7
+    };
+  }
+  private static String padded(Long value, Integer width) {
+    return String.valueOf(value).leftPad(width, '0');
   }
   private static void setDate(JsValue value, Long timestamp) {
     value.dateMilliseconds = timestamp;
-    value.scalar = Datetime.newInstance(timestamp).formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'');
+    List<Long> utc = utcFields(timestamp);
+    Long year = utc[0];
+    value.scalar =
+      (year >= 0 && year <= 9999
+        ? padded(year, 4)
+        : (year < 0 ? '-' : '+') + padded(Math.abs(year), 6)) +
+      '-' +
+      padded(utc[1] + 1, 2) +
+      '-' +
+      padded(utc[2], 2) +
+      'T' +
+      padded(utc[3], 2) +
+      ':' +
+      padded(utc[4], 2) +
+      ':' +
+      padded(utc[5], 2) +
+      '.' +
+      padded(utc[6], 3) +
+      'Z';
   }
   public static JsValue regex(List<JsValue> args) {
     JsValue value = new JsValue('regexp');
@@ -283,7 +365,7 @@ public class JsLibraryBuiltins {
     if (name.startsWith('library.date.')) {
       String method = name.substring(13);
       Long milliseconds = receiver.dateMilliseconds;
-      Datetime dateValue = Datetime.newInstance(milliseconds);
+      List<Long> utc = utcFields(milliseconds);
       if (method == 'toISOString')
         return JsValue.str((String) receiver.scalar);
       if (method == 'getTime' || method == 'valueOf')
@@ -295,15 +377,9 @@ public class JsLibraryBuiltins {
           setDate(receiver, args[0].asNumber().longValue());
         else {
           String part = method.replace('UTC', '').substring(3);
-          List<JsValue> fields = new List<JsValue>{
-            JsValue.num(dateValue.yearGmt()),
-            JsValue.num(dateValue.monthGmt() - 1),
-            JsValue.num(dateValue.dayGmt()),
-            JsValue.num(dateValue.hourGmt()),
-            JsValue.num(dateValue.minuteGmt()),
-            JsValue.num(dateValue.secondGmt()),
-            JsValue.num(Math.mod(milliseconds, 1000))
-          };
+          List<JsValue> fields = new List<JsValue>();
+          for (Integer i = 0; i < 7; i++)
+            fields.add(JsValue.num(utc[i]));
           Integer start = part == 'FullYear'
             ? 0
             : part == 'Month'
@@ -318,24 +394,20 @@ public class JsLibraryBuiltins {
         return JsValue.num(Double.valueOf(receiver.dateMilliseconds));
       }
       String part = method.replace('UTC', '').substring(3);
-      Integer result = part == 'FullYear'
-        ? dateValue.yearGmt()
+      Long result = part == 'FullYear'
+        ? utc[0]
         : part == 'Year'
-            ? dateValue.yearGmt() - 1900
+            ? utc[0] - 1900
             : part == 'Month'
-                ? dateValue.monthGmt() - 1
+                ? utc[1]
                 : part == 'Date'
-                    ? dateValue.dayGmt()
+                    ? utc[2]
                     : part == 'Day'
-                        ? Math.mod(Date.newInstance(1970, 1, 4).daysBetween(dateValue.dateGmt()), 7)
+                        ? utc[7]
                         : part == 'Hours'
-                            ? dateValue.hourGmt()
-                            : part == 'Minutes'
-                                ? dateValue.minuteGmt()
-                                : part == 'Seconds'
-                                    ? dateValue.secondGmt()
-                                    : Math.mod(milliseconds, 1000).intValue();
-      return JsValue.num(result < 0 && part == 'Day' ? result + 7 : result);
+                            ? utc[3]
+                            : part == 'Minutes' ? utc[4] : part == 'Seconds' ? utc[5] : utc[6];
+      return JsValue.num(result);
     }
     String text = receiver.kind == 'string'
       ? receiver.asString()
